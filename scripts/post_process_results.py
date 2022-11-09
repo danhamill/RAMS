@@ -5,13 +5,11 @@ import matplotlib.pyplot as plt
 from geocube.api.core import make_geocube
 
 # Output Shapefile 
-out = gpd.read_file(r'data\scenario1_single_run2_output\s1_single_run2.shp')
+out = gpd.read_file(r'data\dfp_output_shp\s1_single_run2.shp')
 out = out.reset_index()
 
 # Input Terrain
-src = rioxarray.open_rasterio(r'data\terrain1_ascii\hc_cp_ascii_5m.asc').rio.clip(
-    out.geometry.values, out.crs, from_disk=True
-).sel(band=1).drop("band")
+src = rioxarray.open_rasterio(r'data\ascii\ascii_5m_nad83_utm_zone10n.asc').drop("band")
 
 # Match the projection of the input terrain and output shapefile
 out = out.to_crs(src.rio.crs)
@@ -23,9 +21,16 @@ out_grid = make_geocube(
     like=src, # ensure the data are on the same grid
 )
 
-
 # Write rasterized shapefile to raster
-out_grid.Depth.rio.to_raster(r'output\test3.tif')
+out_grid.Depth.rio.to_raster(r'output\depth_raster.tif')
+
+# This assumes positive depths are accumulation and negative depths are errosion
+dod = src + out_grid.Depth
+dod = dod.fillna(-9999.0)
+dod.rio.write_nodata = -9999.0
+
+# Write new terrain to raster
+dod.rio.to_raster(r'output\updated_terrain.tif')
 
 
 
