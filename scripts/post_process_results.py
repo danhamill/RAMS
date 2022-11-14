@@ -3,6 +3,7 @@ import geopandas as gpd
 import xarray as xr
 import matplotlib.pyplot as plt
 from geocube.api.core import make_geocube
+import re
 
 # Output Shapefile 
 out = gpd.read_file(r'data\dfp_output_shp\s1_single_run2.shp')
@@ -30,9 +31,14 @@ dod = dod.combine_first(src)
 dod = dod.fillna(-9999.0)
 dod = dod.rio.write_nodata(-9999.0)
 
+outputFileName = r'output\updated_terrain3.asc'
 # Write new terrain to raster
-dod.rio.to_raster(r'output\updated_terrain3.asc')
+dod.rio.to_raster(outputFileName)
 
+with open(outputFileName,'r+') as f:
+    modified = re.sub('^.','',f.read(),flags=re.MULTILINE)
+    f.seek(0,0)
+    f.write(modified)
 
 
 
