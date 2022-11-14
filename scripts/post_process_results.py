@@ -9,7 +9,7 @@ out = gpd.read_file(r'data\dfp_output_shp\s1_single_run2.shp')
 out = out.reset_index()
 
 # Input Terrain
-src = rioxarray.open_rasterio(r'data\ascii\ascii_5m_nad83_utm_zone10n.asc').drop("band")
+src = rioxarray.open_rasterio(r'data\ascii\ascii_5m_nad83_utm_zone10n.asc').squeeze()
 
 # Match the projection of the input terrain and output shapefile
 out = out.to_crs(src.rio.crs)
@@ -26,11 +26,12 @@ out_grid.Depth.rio.to_raster(r'output\depth_raster.tif')
 
 # This assumes positive depths are accumulation and negative depths are errosion
 dod = src + out_grid.Depth
+dod = dod.combine_first(src)
 dod = dod.fillna(-9999.0)
-dod.rio.write_nodata = -9999.0
+dod = dod.rio.write_nodata(-9999.0)
 
 # Write new terrain to raster
-dod.rio.to_raster(r'output\updated_terrain.tif')
+dod.rio.to_raster(r'output\updated_terrain3.asc')
 
 
 
