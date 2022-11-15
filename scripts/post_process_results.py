@@ -36,9 +36,14 @@ outputFileName = r'output\updated_terrain3.asc'
 dod.rio.to_raster(outputFileName)
 
 with open(outputFileName,'r+') as f:
-    modified = re.sub('^.','',f.read(),flags=re.MULTILINE)
+    data = f.readlines()
+    head = data[:6]
+    tail = data[6:]
+    tail = [re.sub('^.','',i) for i in tail]
+    head.extend(tail)
     f.seek(0,0)
-    f.write(modified)
+    f.writelines(head)
+
 
 
 
